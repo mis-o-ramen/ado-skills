@@ -1,6 +1,6 @@
 ---
 name: azure-devops
-description: オンプレミスの Azure DevOps Server 2022 を REST API 経由で操作する能力層。作業アイテム（ユーザーストーリー、フィーチャー、バグ、タスク、PBI）の検索・参照・作成・更新・コメント、受け入れ基準など型ごとに異なるフィールドと State の取得、プルリクエストの参照・スレッド・コメント・作成、PR に紐づく作業アイテムの取得、失敗したビルドパイプラインの調査。ユーザーが作業アイテム、ワークアイテム、ユーザーストーリー、バックログ、スプリント、イテレーション、WIQL、プルリクエスト、PR、ビルド、パイプライン、Azure DevOps、ADO、TFS に言及したときに使う。設計・実装・レビュー・指摘対応・調査・分解の各工程は兄弟スキル issue-design / issue-implement / pr-review / pr-fix / issue-research / issue-plan が持ち、いずれもこのスキルを能力層として使う。Operate a self-hosted Azure DevOps / TFS server; the process stages live in the sibling stage skills (issue-design, issue-implement, pr-review, pr-fix, issue-research, issue-plan); read the stage skill first.
+description: オンプレミスの Azure DevOps Server 2022 を REST API 経由で操作する能力層。作業アイテム（ユーザーストーリー、フィーチャー、バグ、タスク、PBI）の検索・参照・作成・更新・コメント、受け入れ基準など型ごとに異なるフィールドと State の取得、プルリクエストの参照・スレッド・コメント・作成、PR に紐づく作業アイテムの取得、失敗したビルドパイプラインの調査。ユーザーが作業アイテム、ワークアイテム、ユーザーストーリー、バックログ、スプリント、イテレーション、WIQL、プルリクエスト、PR、ビルド、パイプライン、Azure DevOps、ADO、TFS に言及したときに使う。設計・実装・レビュー・指摘対応・調査・分解・チケットレビューの各工程は兄弟スキル issue-design / issue-implement / pr-review / pr-fix / issue-research / issue-plan / issue-review が持ち、いずれもこのスキルを能力層として使う。Operate a self-hosted Azure DevOps / TFS server; the process stages live in the sibling stage skills (issue-design, issue-implement, pr-review, pr-fix, issue-research, issue-plan, issue-review); read the stage skill first.
 ---
 
 # Azure DevOps Server（オンプレミス）
@@ -154,7 +154,7 @@ build logs <id> [--fetch] [--tail 200] [--log <logId>]
 ## 工程スキルが引く操作
 
 工程スキル (`issue-design`・`issue-implement`・`pr-review`・`pr-fix`・`issue-research`・
-`issue-plan`) はすべて GitHub と共用で、基盤ごとに違う操作を「チケットを読む」のような操作名で書いている。この節がその Azure DevOps での実行方法。操作名の一覧と契約は
+`issue-plan`・`issue-review`) はすべて GitHub と共用で、基盤ごとに違う操作を「チケットを読む」のような操作名で書いている。この節がその Azure DevOps での実行方法。操作名の一覧と契約は
 中央リポジトリ ai-workflows の `docs/platform-ops.md` にあり、ここはそれを実装する。
 工程スキルの「チケット」は作業アイテム、「受け入れ条件」は受け入れ基準を指す。
 
@@ -173,6 +173,17 @@ wit comments <id>
 
 `wit get <id> --relations` の `relations` のうち `System.LinkTypes.Hierarchy-Reverse` が
 親。その ID を `wit get` で読む。無ければ親は無い。
+
+### 子チケットを一覧する
+
+```
+wit get <親id> --relations
+wit get <子id> <子id> … --relations
+```
+
+親の `relations` のうち `System.LinkTypes.Hierarchy-Forward` が子。子の ID をまとめて
+`wit get` で読む。子の `relations` に `ArtifactLink` で `attributes.name` が
+`Pull Request` のものがあれば、紐づく PR があり着手済み。
 
 ### チケットを探す
 
@@ -212,7 +223,7 @@ wit create --type "Feature" --title "…" --description @parent.md
 ### 子チケットを起票する
 
 親フィーチャーの下にユーザーストーリー (バグの修正ならバグ) を `--parent <親id>` で
-ぶら下げる。背景・作業内容・依存は `System.Description`、受け入れ条件は受け入れ基準の
+ぶら下げる。背景・作業内容・スコープ外・依存は `System.Description`、受け入れ条件は受け入れ基準の
 フィールドに置く。依存は `依存: #<id>` の 1 行で書く。
 
 ```
@@ -222,6 +233,20 @@ wit create --type "User Story" --title "…" --parent <親id> --description @bod
 
 「チケットを起票する」と同じく、起票後に本文を読み戻して書き直せないことがある。起票前に
 承認を得た本文だけを書く。
+
+### チケットを書き換える
+
+`html` 型のフィールドは読み戻して書けない (「最初にフィールドを調べる」) ので、読んだ
+本文を編集せず、工程スキルが渡した全文で置き換える。
+
+```
+wit update <id> --field-multiline System.Description=@body.md \
+  --field-multiline Microsoft.VSTS.Common.AcceptanceCriteria=@criteria.md
+```
+
+受け入れ条件のフィールドの参照名は型で決まる (「チケットを読む」)。タイトルも変わるなら
+`--title` を付ける。置き換えた後、`wit comment` で何を変えたかを 1 行残す。フィールドの
+履歴は残るが、差分が読みにくい。
 
 ### チケットにコメントする
 

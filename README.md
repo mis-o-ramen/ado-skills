@@ -14,6 +14,7 @@
 | `pr-fix` | 修正の段 | レビュー指摘に対応し、同じブランチに push する |
 | `issue-research` | 支援工程（調査） | コードを変えずに調べ、判断材料を作業アイテムに報告する |
 | `issue-plan` | 支援工程（分解） | フィーチャーを、1 本の PR で完結する子ストーリーに分ける |
+| `issue-review` | 支援工程（チケットレビュー） | 着手前の作業アイテムを、親・兄弟とまとめてレビューする |
 | `azure-devops` | 能力層（段を持たない） | ADO の操作方法。REST クライアントと、ビルド調査の手順 |
 | `coding-rules` | ループ外 | プロジェクトのコーディング規約を整備する |
 | `output-contract` / `artifact-writing` / `git-conventions` | 共通規約 | 工程スキルが読む出力・成果物・git の規約 |
@@ -30,6 +31,7 @@
 ├── pr-fix/SKILL.md           # 修正: レビュー指摘に対応する
 ├── issue-research/SKILL.md   # 調査: 調べて判断材料を報告する
 ├── issue-plan/SKILL.md       # 分解: フィーチャーを子ストーリーに分ける
+├── issue-review/SKILL.md     # チケットレビュー: 着手前の作業アイテムを親・兄弟とまとめて見る
 ├── azure-devops/             # 能力層。工程スキルがスキル名で引く
 │   ├── SKILL.md              # ADO の操作コマンドと、その使い分け
 │   ├── scripts/ado.py        # REST クライアント。Python 3 標準ライブラリのみ
@@ -69,7 +71,7 @@ OSS ライセンスは付けていない。
 
 | 層 | 置き場所 | 何を書くか |
 | --- | --- | --- |
-| 工程 | `issue-design` / `issue-implement` / `pr-review` / `pr-fix`、支援工程の `issue-research` / `issue-plan` | その段の入口条件と手順。段固有の優先度・出力規約・上限 |
+| 工程 | `issue-design` / `issue-implement` / `pr-review` / `pr-fix`、支援工程の `issue-research` / `issue-plan` / `issue-review` | その段の入口条件と手順。段固有の優先度・出力規約・上限 |
 | 共通 | `output-contract` / `artifact-writing` | 報告と成果物の書き方。各段はここに固有の上限を足す |
 | 共通 | `git-conventions` | ブランチ名とコミットメッセージの規約。対象リポジトリの規約が優先 |
 | 共通 | `ui-copy` | ユーザーに見える文言の変更を、リポジトリの文言規約と画面単位で照合する手順 |

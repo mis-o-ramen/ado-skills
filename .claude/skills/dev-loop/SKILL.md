@@ -1,6 +1,6 @@
 ---
 name: dev-loop
-description: 開発ループ (設計・実装・レビュー・修正) の定義。段ごとの入口条件・成果物・人間の承認点と、人間が握る制御点を定める。GitHub・Azure DevOps (ADO / TFS) 共通。依頼がどの工程に当たるか分からないときの振り分けや、工程スキル (issue-design / issue-implement / pr-review / pr-fix / issue-research / issue-plan) が入口条件と制御点を確かめるときに読む。工程の手順そのものは各工程スキルが持つ。Defines the development loop stages, entry conditions and human control points.
+description: 開発ループ (設計・実装・レビュー・修正) の定義。段ごとの入口条件・成果物・人間の承認点と、人間が握る制御点を定める。GitHub・Azure DevOps (ADO / TFS) 共通。依頼がどの工程に当たるか分からないときの振り分けや、工程スキル (issue-design / issue-implement / pr-review / pr-fix / issue-research / issue-plan / issue-review) が入口条件と制御点を確かめるときに読む。工程の手順そのものは各工程スキルが持つ。Defines the development loop stages, entry conditions and human control points.
 ---
 
 # 開発ループ
@@ -45,10 +45,19 @@ Azure DevOps ではチャットの依頼が段を起動する (HITL に近い)�
 | --- | --- | --- | --- |
 | 調査 | 決めるために調べることがある | `issue-research` | チケットへの報告 |
 | 分解 | 1 本のプルリクエストに収まらない親チケットがある | `issue-plan` | 子チケット群 (着手の承認は子ごと) |
+| チケットレビュー | 着手していないチケットがあり、着手の前に確かめたい | `issue-review` | 直し先付きの指摘と、子ごとの着手可否 |
 | ビルド調査 | ビルドが失敗している | 能力層のビルドの調べ方 | 失敗ステップと原因の特定 |
 
 支援工程の工程スキルも、GitHub と Azure DevOps で同じ本文を使う。設計の段で 1 本の
 プルリクエストに収まらないと分かったら、設計の段は親チケットを起票して分解に渡す。
+
+子チケットは、親と兄弟をまとめた一式でチケットレビューにかける。1 つの子だけを見る
+レビューは、兄弟に回した振る舞いを「抜け」として指摘し、直すたびに子の範囲が兄弟に
+食い込む。次のときにかける (GitHub Actions では括弧内の契機で起動する)。
+
+- 分解の工程が、子チケットの下書きの承認を求める前 (分解の後)
+- 子チケットの受け入れ条件を変えた後 (レビュー指摘を反映した分解の後。人間が直したら `ai:check`)
+- 先の子チケットがマージされ、残りの子に着手する前 (子のクローズ)
 
 ## 実行基盤ごとの対応
 
@@ -60,6 +69,7 @@ Azure DevOps ではチャットの依頼が段を起動する (HITL に近い)�
 | 修正 | `ai:fix` (または `ai:auto` の自動付与) → ai-fix | チャットで依頼 |
 | 調査 | `type:research` + `ai:go` → ai-research | チャットで依頼 |
 | 分解 | `type:epic` + `ai:go` → ai-plan | チャットで依頼 |
+| チケットレビュー | 親か子に `ai:check`、子のクローズ → ai-issue-review (分解の後は ai-plan が `ai:check` を付ける) | チャットで依頼 |
 | ビルド調査 | (対応なし) | `azure-devops` の「ビルド」 |
 
 GitHub でも、手元の Claude Code・GitHub Copilot から工程スキルを直接呼べる。そのときの
@@ -96,7 +106,8 @@ GitHub Actions で発行の承認を着手の承認に含めてよいのは、�
 ## 今どの段かの判定
 
 依頼が段を名指ししないときは、成果物の有無で決める。上から順に判定する。
-調べてほしい・分けてほしいと名指しされた依頼は、段ではなく支援工程 (調査・分解) に渡す。
+調べてほしい・分けてほしい・チケットを見てほしいと名指しされた依頼は、段ではなく支援工程
+(調査・分解・チケットレビュー) に渡す。
 
 1. 受け入れ条件の埋まったチケットが無い → **設計**
 2. チケットはあるが、紐づくプルリクエストが無い → **実装**
