@@ -199,12 +199,13 @@ wit query --wiql "SELECT [System.Id], [System.Title], [System.State] FROM WorkIt
 「最初にフィールドを調べる」でその型のフィールドを確認する。設計の工程の要素は次に置く。
 
 - タイトル → `--title`
-- 背景・目的、スコープ外、設計判断 → `System.Description` (`--description`)
+- 背景・目的、スコープ外、設計判断 → `System.Description` (`--field-multiline System.Description=@…`)
 - 受け入れ条件 → 受け入れ基準のフィールド (ユーザーストーリーなら
   `Microsoft.VSTS.Common.AcceptanceCriteria`)。`--field-multiline` で 1 件 1 行に書く
 
 ```
-wit create --type "User Story" --title "…" --description @body.md \
+wit create --type "User Story" --title "…" \
+  --field-multiline System.Description=@body.md \
   --field-multiline Microsoft.VSTS.Common.AcceptanceCriteria=@criteria.md
 ```
 
@@ -217,7 +218,8 @@ URL を 1 行ずつ残す。起票後の本文の修正は利かないので、�
 フィーチャーにする。子への分解は分解の工程 (`issue-plan`) が行う。
 
 ```
-wit create --type "Feature" --title "…" --description @parent.md
+wit create --type "Feature" --title "…" \
+  --field-multiline System.Description=@parent.md
 ```
 
 ### 子チケットを起票する
@@ -227,7 +229,8 @@ wit create --type "Feature" --title "…" --description @parent.md
 フィールドに置く。依存は `依存: #<id>` の 1 行で書く。
 
 ```
-wit create --type "User Story" --title "…" --parent <親id> --description @body.md \
+wit create --type "User Story" --title "…" --parent <親id> \
+  --field-multiline System.Description=@body.md \
   --field-multiline Microsoft.VSTS.Common.AcceptanceCriteria=@criteria.md
 ```
 
