@@ -281,8 +281,9 @@ pr threads <id> --repo <repo>
 pr comment <id> --repo <repo> --text @report.md
 ```
 
-トップレベルの新規スレッドとして入る。Markdown が効き、表・箇条書きを使える
-スレッドを解決済みにしない。
+トップレベルの新規スレッドとして入る。Markdown が効き、表・箇条書きを使える。
+スレッドを解決済みにしない。既存の指摘への応答はここではなく「PR の指摘に返信する」で
+書く。
 
 ### PR の行にコメントする
 
@@ -291,6 +292,16 @@ pr comment <id> --repo <repo> --file <パス> --line <N> --text @finding.md
 ```
 
 差分の行に紐づく新規スレッドになる。`--line` は変更後のファイルの行番号。
+
+### PR の指摘に返信する
+
+```
+pr comment <id> --repo <repo> --thread <threadId> --text @reply.md
+```
+
+`<threadId>` は「PR の指摘を読む」が返す `threadId`。差分の行のスレッドにも、トップレベルの
+スレッドにも同じ形で返信できる。`--thread` を付けずに投稿すると、指摘から切り離された
+新規スレッドになる。返信してもスレッドの状態は変わらない。解決済みにしない。
 
 `System.State` は変えない。
 
