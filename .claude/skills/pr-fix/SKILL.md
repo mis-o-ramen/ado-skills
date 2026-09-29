@@ -67,7 +67,8 @@ git checkout <ソース> && git pull
 
 - リポジトリの `CLAUDE.md` / `AGENTS.md` / `.github/copilot-instructions.md` があれば読み、
   従う
-- コードコメントや docs を触るときは `artifact-writing` スキルに従う
+- コードを直すとき、コードコメントや docs を触るときは `artifact-writing` スキルに従う。
+  コメントを付ける場所もそこに定めてある
 - ユーザーに見える文言を足す・変える・消すなら `ui-copy` スキルに従う
 - コミットメッセージは `git-conventions` スキルに従う。指摘対応であることは type にしない。
   直した内容で type を決める

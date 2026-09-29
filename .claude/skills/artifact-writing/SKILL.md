@@ -1,6 +1,6 @@
 ---
 name: artifact-writing
-description: Use this skill whenever writing or editing a durable artifact that others will read later — DESIGN.md, README, ADR, spec documents, code comments, docstrings, type definitions, or any Markdown deliverable committed to a repository. Trigger on the moment, not only on the document type — load it before committing any diff that adds or edits comments, docstrings, or .md files, including when the task is implementing a feature and the comments are incidental to it. Also trigger when reviewing such a document for bloat, when the user says a doc has become long or hard to read, or when asked to distill a discussion into a document. This skill governs WHAT CONTENT belongs in the artifact — norms and reasons in present tense, never the history of how they were arrived at. Do not use for PR descriptions, issue bodies, commit messages, or changelogs, which are the correct home for that history.
+description: Use this skill whenever writing or editing a durable artifact that others will read later — DESIGN.md, README, ADR, spec documents, code comments, docstrings, type definitions, or any Markdown deliverable committed to a repository. Trigger on the moment, not only on the document type — load it before committing any diff that adds or edits comments, docstrings, or .md files, including when the task is implementing a feature and the comments are incidental to it. Also load it before committing any code change, even one with no comments yet, because it defines where code comments are required. Also trigger when reviewing such a document for bloat, when the user says a doc has become long or hard to read, or when asked to distill a discussion into a document. This skill governs WHAT CONTENT belongs in the artifact — norms and reasons in present tense, never the history of how they were arrived at. Do not use for PR descriptions, issue bodies, commit messages, or changelogs, which are the correct home for that history.
 ---
 
 # 成果物の記述規約
@@ -65,6 +65,24 @@ description: Use this skill whenever writing or editing a durable artifact that 
 - **型定義・スキーマ**: 制約と単位のみ。互換性のために残したフィールドは「deprecated」の一語で足りる
 - **ADR**: 唯一、決定の時点を記録してよい成果物。ただし記録するのは**決定と選ばなかった選択肢**であって、議論の推移ではない
 
+## コードコメントを付ける場所
+
+この規約が決めるのはコメントの中身で、コメントを減らすことではない。コメントの無いコードは、
+読み手が「なぜ」をコードから推測するしかなく、推測を誤った善意の修正を招く。
+
+実装した差分のうち、次に当たる箇所には現在形の根拠を1〜2行で付ける。
+
+- **値の根拠がコードの外にある**: 定数・上限・待ち時間・再試行回数など。単位と、その値である理由
+- **一見不要に見える処理**: 外部の仕様・ライブラリの制約・既知の不具合を避けるための分岐や回避策。消すと何が壊れるか
+- **順序や前提に依存する処理**: 呼ぶ順番・ロックの範囲・事前に満たされているべき状態
+- **公開する関数・型・エンドポイント**: シグネチャや名前から読み取れない前提・戻り値・例外があるとき、その内容
+- **仕様をそのまま写した分岐**: 業務ルールや受け入れ条件に由来する条件式。どの規則を実装しているかを規則の言葉で書く
+
+逆に、コードを読めば分かること（何をしているかの言い換え、変数名の繰り返し）は書かない。
+
+周りの既存コードにコメントが少ないことは、上の箇所で省く理由にならない。リポジトリの規約（`CLAUDE.md` など）が
+コメントを付ける場所や量を別に定めていれば、そちらに従う。書き方（言語・形式）だけを定めているなら、場所はこの節に従い、書き方は規約に従う。
+
 ## 顛末の正しい行き先
 
 顛末は価値がある情報なので、消すのではなく移す。
@@ -102,6 +120,7 @@ git diff HEAD | grep '^+' | grep -E 'だった|していた|なっていた|か�
 - [ ] 過去形・時間の副詞が残っていないか
 - [ ] PR番号・issue番号・過去の値・過去の文言が本文に混ざっていないか
 - [ ] PR本文に書いた経緯の説明文を、コードコメントへ再掲していないか
+- [ ] 「コードコメントを付ける場所」に当たる追加行に、根拠のコメントが付いているか
 - [ ] 各規範に、それが今も成り立つ根拠が付いているか（根拠を削りすぎていないか）
 - [ ] 落とした顛末の行き先（PR本文 / issue）を確保したか
 - [ ] その文書自身が定めているルールに、その文書が違反していない
