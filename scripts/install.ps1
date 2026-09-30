@@ -16,7 +16,7 @@ foreach ($Dest in @("$HOME\.claude\skills", "$HOME\.copilot\skills", "$HOME\.age
   Get-ChildItem -Force $Dest | Where-Object {
     $_.LinkType -eq "SymbolicLink" -and $_.Target -like "$Src\*" -and -not (Test-Path $_.Target)
   } | ForEach-Object {
-    Remove-Item $_.FullName -Force
+    $_.Delete()
     Write-Output "- $($_.FullName) (切れたリンクを外した)"
   }
 
@@ -27,7 +27,9 @@ foreach ($Dest in @("$HOME\.claude\skills", "$HOME\.copilot\skills", "$HOME\.age
       Write-Output "! $Target は実ディレクトリなので触らない (コピーで配置したなら消してから再実行する)"
       return
     }
-    if ($Existing) { Remove-Item $Target -Force }
+    # Remove-Item だとリンク先の中身を子要素とみなして確認が出る (-Recurse は PowerShell 5.1 でリンク先まで消す)。
+    # .Delete() はリンクだけを外す
+    if ($Existing) { $Existing.Delete() }
     New-Item -ItemType SymbolicLink -Path $Target -Target $_.FullName | Out-Null
     Write-Output "✓ $Target"
   }
