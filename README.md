@@ -202,6 +202,42 @@ GitHub Copilot にはコマンド単位の確認機構が無いため、Copilot 
 ブランチポリシーになる。ターゲットブランチへの直接 push の禁止は、エージェントの
 規約ではなくブランチポリシー（PR 必須）で強制する。
 
+### 6. 画面の観点を足す（任意）
+
+`issue-design` と `pr-review` は、画面を作る・変える変更のときに、外部のスキル
+[Impeccable](https://github.com/pbakaus/impeccable)（Apache-2.0）の観点を使う。
+入っていなければその観点を飛ばすだけで、手順は止まらない。この配布物には同梱しない。
+
+使うなら、Impeccable のリポジトリの配布物を、他のスキルと同じホームディレクトリ配下に
+手で置く。エージェントから `impeccable` という名前のスキルが見えればよい。
+
+版は GitHub Actions と同じ `skill-v4.5.0` に揃える。工程スキルは参照ファイルの節の名前を
+名指ししているため、版がずれると当てる項目が食い違う。置き直すときは、古いファイルが
+残らないよう先に置き場所のディレクトリを消す。
+
+```sh
+src="$(mktemp -d)"
+git clone --depth 1 --branch skill-v4.5.0 https://github.com/pbakaus/impeccable.git "$src" &&
+  rm -rf ~/.copilot/skills/impeccable ~/.claude/skills/impeccable &&
+  cp -R "$src/.github/skills/impeccable" ~/.copilot/skills/ &&   # GitHub Copilot
+  cp -R "$src/.claude/skills/impeccable" ~/.claude/skills/        # Claude Code
+rm -rf "$src"
+```
+
+`npx impeccable install` や VS Code 拡張でも入るが、`npx impeccable install` はプロジェクトに
+フック（Copilot は `.github/hooks/impeccable.json`、Claude Code は `.claude/settings.local.json`）も
+書き込む。フックはファイルを編集するたびに Impeccable のスクリプトを実行し、その結果を
+エージェントに渡すので、実装の工程にも作用する。フックを入れないなら手で置く。
+
+工程スキルは Impeccable をスキルとして呼び出さず、参照ファイル（設計は `reference/shape.md`、
+レビューは `reference/audit.md` / `audit.native.md`）だけを開く。工程スキルからは Impeccable の
+実行ファイルは起動しない。
+
+ただし、手で置いても Impeccable は 1 つのスキルとして見えるので、画面に関わる他の作業
+（実装の工程を含む）でエージェントが自分から呼び出すことがある。呼び出されると実行ファイルが
+起動し、初回はエンジンを GitHub から取得するため社外に出る。社外に出られない環境では
+取得に失敗し、Impeccable は実行ファイルなしの手順で続ける。
+
 ## 生成物はコミットしない
 
 `references/fields/` に生成されるファイルには、サーバ URL・プロジェクト名・社内の
