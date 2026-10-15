@@ -60,7 +60,8 @@ python3 scripts/ado.py wit types
 参照名を推測しない。そのセッションでまだ扱っていない型の作業アイテムを作成・更新する前に、
 次の順で確認する。
 
-1. `references/fields/` に `<プロジェクト>.<型>.md` があれば読む。
+1. `references/fields/` に `<プロジェクト>.<型>.md` があれば読む。名前は文字・数字以外 (空白や記号) を
+   `-` にした小文字 (例 `myproject.user-story.md`。プロジェクト未指定なら `default.user-story.md`)。
 2. なければ生成する。
    ```
    python3 scripts/ado.py wit describe-type --type "User Story" --save
@@ -182,7 +183,7 @@ wit get <子id> <子id> … --relations
 ```
 
 親の `relations` のうち `System.LinkTypes.Hierarchy-Forward` が子。子の ID をまとめて
-`wit get` で読む。子の `relations` に `ArtifactLink` で `attributes.name` が
+`wit get` で読む。子の `relations` に `rel` が `ArtifactLink` で `name` が
 `Pull Request` のものがあれば、紐づく PR があり着手済み。
 
 ### チケットを探す
@@ -215,12 +216,18 @@ URL を 1 行ずつ残す。起票後の本文の修正は利かないので、�
 
 ### 親チケットを起票する
 
-フィーチャーにする。子への分解は分解の工程 (`issue-plan`) が行う。
+フィーチャーにする。子への分解は分解の工程 (`issue-plan`) が行う。受け入れ条件は受け入れ基準の
+フィールドに 1 件 1 行で書く。分解とチケットレビューは上からの番号でこれを指す。フィーチャーに
+受け入れ基準のフィールドが無ければ (「最初にフィールドを調べる」で確認)、`System.Description` の
+末尾に「受け入れ条件」の見出しを置いてそこに書く。
 
 ```
 wit create --type "Feature" --title "…" \
-  --field-multiline System.Description=@parent.md
+  --field-multiline System.Description=@parent.md \
+  --field-multiline Microsoft.VSTS.Common.AcceptanceCriteria=@criteria.md
 ```
+
+受け入れ基準のフィールドが無い型では、最後の行を外して `System.Description` に書く。
 
 ### 子チケットを起票する
 

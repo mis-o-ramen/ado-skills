@@ -412,6 +412,7 @@ def _fetch_work_items(client, ids, fields=None, expand_all=False, relations=Fals
         if relations:
             entry["relations"] = [
                 {"rel": r.get("rel"), "url": r.get("url"),
+                 "name": (r.get("attributes") or {}).get("name"),
                  "comment": (r.get("attributes") or {}).get("comment")}
                 for r in item.get("relations", []) or []
             ]
