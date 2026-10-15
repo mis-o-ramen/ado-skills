@@ -19,6 +19,7 @@
 | `coding-rules` | ループ外 | プロジェクトのコーディング規約を整備する |
 | `output-contract` / `artifact-writing` / `git-conventions` | 共通規約 | 工程スキルが読む出力・成果物・git の規約 |
 | `ui-copy` | 共通規約 | 工程スキルが、ユーザーに見える文言の変更を文言規約と照合する手順 |
+| `consult-response` | 共通規約 | 設計・方針・スコープの相談に答えるときの応答の形式 |
 
 ## 構成
 
@@ -42,7 +43,8 @@
 ├── output-contract/          # 出力規約
 ├── artifact-writing/         # 成果物の記述規約
 ├── git-conventions/          # ブランチ名とコミットメッセージの規約
-└── ui-copy/                  # ユーザーに見える文言の照合手順
+├── ui-copy/                  # ユーザーに見える文言の照合手順
+└── consult-response/         # 設計相談への応答の形式
 
 scripts/
 ├── install.sh                # スキルをホームディレクトリに配置する（macOS / Linux）
@@ -75,6 +77,7 @@ OSS ライセンスは付けていない。
 | 共通 | `output-contract` / `artifact-writing` | 報告と成果物の書き方。各段はここに固有の上限を足す |
 | 共通 | `git-conventions` | ブランチ名とコミットメッセージの規約。対象リポジトリの規約が優先 |
 | 共通 | `ui-copy` | ユーザーに見える文言の変更を、リポジトリの文言規約と画面単位で照合する手順 |
+| 共通 | `consult-response` | 設計・方針・スコープの相談に答えるときの応答の形式。結論を先に置き、実装の詳細は次のターンに回す |
 | 能力 | `azure-devops` の `SKILL.md` と `scripts/ado.py` | ADO を操作する方法。コマンドと、その使い分け。工程スキルが引く操作の実装 |
 
 工程を語彙に持つのは段スキルの description だけにする。ユーザーの依頼は「設計したい」
@@ -151,7 +154,7 @@ Copy-Item -Recurse -Force "$HOME\src\ado-skills\.claude\skills\*" `
 ```sh
 export ADO_ORG_URL="https://tfs.example.com/tfs/DefaultCollection"
 export ADO_PAT="<個人用アクセストークン>"
-export ADO_PROJECT="My Project"
+export ADO_PROJECT="My Project"   # 別のプロジェクトはコマンドの前に ADO_PROJECT=<名前> を付ける
 export ADO_CA_BUNDLE="/etc/ssl/certs/internal-ca.pem"   # 社内 CA を使っている場合
 ```
 
@@ -178,12 +181,21 @@ python3 ~/.claude/skills/azure-devops/scripts/ado.py wit describe-type --type "U
 {
   "permissions": {
     "ask": [
+      "Bash(*/ado.py --project *)",
+      "Bash(* ado.py --project *)",
+      "Bash(*/ado.py wit create *)",
       "Bash(* ado.py wit create *)",
+      "Bash(*/ado.py wit set-state *)",
       "Bash(* ado.py wit set-state *)",
+      "Bash(*/ado.py pr create *)",
       "Bash(* ado.py pr create *)",
+      "Bash(*/ado.py request POST *)",
       "Bash(* ado.py request POST *)",
+      "Bash(*/ado.py request PATCH *)",
       "Bash(* ado.py request PATCH *)",
+      "Bash(*/ado.py request PUT *)",
       "Bash(* ado.py request PUT *)",
+      "Bash(*/ado.py request DELETE *)",
       "Bash(* ado.py request DELETE *)"
     ],
     "deny": [
@@ -194,7 +206,9 @@ python3 ~/.claude/skills/azure-devops/scripts/ado.py wit describe-type --type "U
 }
 ```
 
-パターンの書式は Claude Code のバージョンで変わることがある。効いているかは
+パターンの中の空白は文字どおりに照合されるので、`ado.py` の直前が `/` の形 (`python3 …/scripts/ado.py …`) と
+空白の形 (`python3 ado.py …`) の両方を並べる。Windows で `\` 区切りのパスから呼ぶ形には
+当たらない。パターンの書式は Claude Code のバージョンで変わることもあるので、効いているかは
 `/permissions` で確認する。
 
 GitHub Copilot にはコマンド単位の確認機構が無いため、Copilot 実行を守るのは

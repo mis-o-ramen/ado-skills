@@ -1,7 +1,9 @@
 # 実例とトラブルシュート
 
-以下のコマンドはすべて `python3 scripts/ado.py` を前置する。このファイル内のパスは
-スキル `azure-devops` のディレクトリからの相対。
+以下のコマンドはすべて `python3 <スキル azure-devops のディレクトリ>/scripts/ado.py` を
+前置する。`scripts/`・`references/` で始まるパスはスキル `azure-devops` のディレクトリからの
+相対、`@query.wiql` のように `@` を付けて渡すファイルはコマンドを実行するカレント
+ディレクトリからの相対。
 
 ## WIQL
 
@@ -37,6 +39,9 @@ WHERE [Source].[System.Id] = 1234
   AND [System.Links.LinkType] = 'System.LinkTypes.Hierarchy-Forward'
 MODE (MustContain)"
 ```
+
+リンククエリの結果には、子のほかに起点の作業アイテム自身 (この例の 1234) も入る。返った
+`workItems` から起点の ID を除いたものが子。
 
 使えるマクロ: `@me`、`@project`、`@today`、`@currentIteration`。日付の計算は
 `@today - 7` と書く。
@@ -121,7 +126,7 @@ pr create --repo billing-api --source feature/csv-export --target main \
 | HTTP 401、またはサインインの HTML ページが返る | PAT が誤っているか失効している。あるいはサーバ側で Basic 認証の PAT が無効化されている。 |
 | HTTP 403 | PAT は有効だがスコープが足りない。作業アイテムの書き込みには *Work Items (read & write)*、プルリクエストのコメントには *Code (read & write)*、ビルドログには *Build (read)* が要る。 |
 | 正しそうなパスで HTTP 404 | プロジェクトかコレクションが違うか、そのルートがプレビュー版の api-version を要求している。`request … --api-version-override 7.0-preview.3` で再試行する。 |
-| 存在しないフィールドを示す HTTP 400 | その参照名がその作業アイテム型に存在しない。`wit describe-type --save` で再生成する。 |
+| 存在しないフィールドを示す HTTP 400 | その参照名がその作業アイテム型に存在しない。`wit describe-type --type "<型>" --save` で再生成する。 |
 | `CERTIFICATE_VERIFY_FAILED` | `ADO_CA_BUNDLE` に社内 CA のバンドルを指定する。`ADO_TLS_INSECURE=1` は検証を無効化する最終手段。 |
 | 社内ホストへの接続が拒否される、またはタイムアウトする | `HTTPS_PROXY` が社内サーバにも適用されている。そのホストを `NO_PROXY` に追加する。 |
 | コメントは通ったがディスカッションに出ない | `wit comment` は `System.History` に書き込み、作業アイテムのディスカッションに表示される。作業アイテムの ID を確認する。 |
