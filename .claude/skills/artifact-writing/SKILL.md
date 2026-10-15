@@ -1,6 +1,6 @@
 ---
 name: artifact-writing
-description: Use this skill whenever writing or editing a durable artifact that others will read later — DESIGN.md, README, ADR, spec documents, code comments, docstrings, type definitions, or any Markdown deliverable committed to a repository. Load it before committing any diff that adds or edits comments, docstrings, or .md files, including when the task is implementing a feature and the comments are incidental to it. Also load it before committing any code change, even one with no comments yet, because it defines where code comments are required. Also trigger when reviewing such a document for bloat, when the user says a doc has become long or hard to read, or when asked to distill a discussion into a document. This skill governs WHAT CONTENT belongs in the artifact — norms and reasons in present tense, never the history of how they were arrived at. Do not use for PR descriptions, issue bodies, commit messages, or changelogs, which are the correct home for that history.
+description: Use this skill whenever writing or editing a durable artifact that others will read later — DESIGN.md, README, ADR, spec documents, code comments, docstrings, type definitions, or any Markdown deliverable committed to a repository. Load it before committing any diff that adds or edits comments, docstrings, or .md files, including when the task is implementing a feature and the comments are incidental to it. Also load it before committing any code change, even one with no comments yet, because it defines where code comments are required. Also trigger when reviewing such a document for bloat, when the user says a doc has become long or hard to read, or when asked to distill a discussion into a document. This skill governs WHAT CONTENT belongs in the artifact — norms and reasons in present tense, never the history of how they were arrived at. Do not use for PR descriptions, issue bodies, commit messages, or changelogs. History belongs in PR descriptions and issues; commit messages follow git-conventions.
 ---
 
 # 成果物の記述規約
@@ -28,7 +28,7 @@ description: Use this skill whenever writing or editing a durable artifact that 
 以下が出たら顛末。機械的に検出できる。
 
 - 過去形: 「〜だった」「〜していた」「〜になっていた」「〜と言っていた」
-- 時間の副詞: 「かつて」「以前は」「元々」「最初は」「一度」「最後に」
+- 時間の副詞: 「かつて」「以前は」「元々」「最初は」「一度」「最後に」「引き続き」
 - 固有の事件への参照: `PR #47`、`issue #53`、「検出器の◯◯を踏んでいる」、「実際 `#a97b22` は」
 - 過去の悪い実例の引用（直った文言・値・コードの現物）
 
@@ -61,7 +61,7 @@ description: Use this skill whenever writing or editing a durable artifact that 
 
 - **規範ドキュメント（DESIGN.md 等）**: 各ルールは「規範 → 根拠」の2文まで。移行の経緯・旧値・旧文言を載せない
 - **README**: 現在の使い方のみ。過去のAPI、廃止した手順、移行の理由を書かない（それはCHANGELOG）
-- **コードコメント**: そのコードが**今なぜそうなっているか**のみ。「以前は〜だったが」「〜のバグを踏んだので」は書かない。修正の経緯は `git blame` から辿れる
+- **コードコメント**: そのコードが**今なぜそうなっているか**のみ。「以前は〜だったが」「〜のバグを踏んだので」は書かない。修正の経緯は PR本文に置き、`git blame` からコミットと PR を辿れる
 - **型定義・スキーマ**: 制約と単位のみ。互換性のために残したフィールドは「deprecated」の一語で足りる
 - **ADR**: 唯一、決定の時点を記録してよい成果物。ただし記録するのは**決定と選ばなかった選択肢**であって、議論の推移ではない
 
@@ -109,12 +109,13 @@ description: Use this skill whenever writing or editing a durable artifact that 
 まず機械で拾う。
 
 ```bash
-git diff HEAD | grep '^+' | grep -E 'だった|していた|なっていた|かつて|以前は|元々|最初は|一度|引き続き|PR #|#[0-9]+ で'
+git diff HEAD | grep '^+' | grep -E 'だった|していた|なっていた|言っていた|かつて|以前は|元々|最初は|一度|最後に|引き続き|PR #|issue #|#[0-9]+ で'
 ```
 
 `git diff HEAD` にするのは、staged と unstaged の両方を一度に見るため。
 
 ヒットは顛末の候補であって確定ではない。**ヒットした行は、現在形へ翻訳してから通す**。
+手順や順序を述べる現在形の「最後に〜する」「一度に」は顛末ではない（順序依存の根拠コメントは消さない）。
 拾えるのは日本語の時制だけなので、grep が空でも下の目視は省かない。
 
 - [ ] 過去形・時間の副詞が残っていないか
