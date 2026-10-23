@@ -267,29 +267,27 @@ wit create --type "User Story" --title "…" \
 
 ### 親チケットを起票する
 
-フィーチャーにする。子への分解は分解の工程 (`issue-plan`) が行う。受け入れ条件は受け入れ基準の
-フィールドに 1 件 1 行で書く。分解とチケットレビューは上からの番号でこれを指す。フィーチャーに
-受け入れ基準のフィールドが無ければ (「最初にフィールドを調べる」で確認)、`System.Description` の
-末尾に「受け入れ条件」の見出しを置いてそこに書く。
+フィーチャーにする。子への分解は分解の工程 (`issue-plan`) が行う。背景・目的・成果・
+スコープ外・設計判断をすべて `System.Description` に書き、成果は「成果」の見出しの下に番号付きで
+1 件 1 行にする。分解とチケットレビューはこの番号で指す。受け入れ基準のフィールドは空のままに
+する。受け入れ条件があるかで工程を決める読み手 (設計・実装・チケットレビュー) が、親を
+受け入れ条件の埋まったチケットと読み違えないため。
 
 ```
 wit create --type "Feature" --title "…" \
-  --field-multiline System.Description=@parent.md \
-  --field-multiline Microsoft.VSTS.Common.AcceptanceCriteria=@criteria.md
+  --field-multiline System.Description=@parent.md
 ```
-
-受け入れ基準のフィールドが無い型では、最後の行を外して `System.Description` に書く。
 
 ### 子チケットを起票する
 
-親フィーチャーの下にユーザーストーリー (バグの修正ならバグ) を `--parent <親id>` で
-ぶら下げる。背景・作業内容・スコープ外・依存は `System.Description`、受け入れ条件は受け入れ基準の
-フィールドに置く (バグは「チケットを起票する」のバグの置き場に従う)。依存は `依存: #<id>` の 1 行で書く。
+親フィーチャーの下にユーザーストーリーを `--parent <親id>` でぶら下げる。骨組みの要素
+(背景・成果・作業内容・スコープ外・依存) はすべて `System.Description` に置き、受け入れ基準の
+フィールドは空のままにする。受け入れ条件は、着手の前に設計の工程が詳細化して「チケットを
+書き換える」で受け入れ基準のフィールドに書く。依存は `依存: #<id>` の 1 行で書く。
 
 ```
 wit create --type "User Story" --title "…" --parent <親id> \
-  --field-multiline System.Description=@body.md \
-  --field-multiline Microsoft.VSTS.Common.AcceptanceCriteria=@criteria.md
+  --field-multiline System.Description=@body.md
 ```
 
 起票後に本文を直すときは「チケットを書き換える」で全文を置き換える。
