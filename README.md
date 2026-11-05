@@ -183,12 +183,16 @@ python3 ~/.claude/skills/azure-devops/scripts/ado.py wit describe-type --type "U
     "ask": [
       "Bash(*/ado.py --project *)",
       "Bash(* ado.py --project *)",
+      "Bash(*/ado.py --api-version *)",
+      "Bash(* ado.py --api-version *)",
       "Bash(*/ado.py wit create *)",
       "Bash(* ado.py wit create *)",
       "Bash(*/ado.py wit set-state *)",
       "Bash(* ado.py wit set-state *)",
       "Bash(*/ado.py pr create *)",
       "Bash(* ado.py pr create *)",
+      "Bash(*/ado.py pr update *--publish*)",
+      "Bash(* ado.py pr update *--publish*)",
       "Bash(*/ado.py request POST *)",
       "Bash(* ado.py request POST *)",
       "Bash(*/ado.py request PATCH *)",
@@ -214,7 +218,9 @@ python3 ~/.claude/skills/azure-devops/scripts/ado.py wit describe-type --type "U
 GitHub Copilot にはコマンド単位の確認機構が無いため、Copilot 実行を守るのは
 ツール側の設計（取り消せない操作の非実装、`pr create` の既定ドラフト）と、サーバ側の
 ブランチポリシーになる。ターゲットブランチへの直接 push の禁止は、エージェントの
-規約ではなくブランチポリシー（PR 必須）で強制する。
+規約ではなくブランチポリシー（PR 必須）で強制する。プルリクエストの公開（`pr create --publish`・
+`pr update --publish`）はレビュアーへの通知を伴って取り消せないが、ツールでは止まらず、本文の
+承認を得たときだけ付けるというスキルの規約だけが守る。
 
 ### 6. 画面の観点を足す（任意）
 
@@ -263,11 +269,11 @@ rm -rf "$src"
 | 含む | 含まない |
 | --- | --- |
 | 作業アイテム: WIQL 検索、参照、作成、更新、コメント、フィールドと State の取得 | 添付ファイル、リンク階層、プロセステンプレートの編集 |
-| プルリクエスト: 一覧、参照、レビュースレッド、紐づく作業アイテム、コメント、作成 | 完了、破棄、投票、ポリシー上書き |
+| プルリクエスト: 一覧、参照、レビュースレッド、紐づく作業アイテム、コメント、作成、タイトル・本文の更新と下書きの公開、ファイルの添付 | 完了、破棄、投票、ポリシー上書き |
 | ビルド: 定義、実行履歴、状態、失敗ステップのログ | 実行トリガ、変数グループ、承認 |
 | その他のエンドポイントは `ado.py request` から | Git 操作 — `git` CLI を使う |
 
-取り消せない操作は意図的に外してある。該当する場面では URL を提示し、人間が判断する。
+取り消せない操作は、プルリクエストの公開を除き意図的に外してある。該当する場面では URL を提示し、人間が判断する。公開は `--publish` を付けたときだけ行い、上の実行時ゲートで確認を挟める。
 
 レビュー時の差分取得も REST では行わない。ADS の REST が返すのは変更ファイルの一覧まで
 なので、行単位の差分はローカル clone に対する `git diff` で取る。手順は

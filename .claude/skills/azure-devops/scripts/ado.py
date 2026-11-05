@@ -30,6 +30,8 @@ import urllib.request
 DEFAULT_API_VERSION = "7.0"
 # Work item comments live behind a preview route even on ADS 2022.
 COMMENTS_API_VERSION = "7.0-preview.3"
+# Pull request attachments are only exposed behind a preview route.
+ATTACHMENTS_API_VERSION = "7.0-preview.1"
 
 
 class AdoError(RuntimeError):
@@ -97,7 +99,9 @@ class Client:
         url = self.build_url(path, project=project, collection_level=collection_level,
                              query=query, api_version=api_version)
         data = None
-        if body is not None:
+        if isinstance(body, (bytes, bytearray)):
+            data = bytes(body)
+        elif body is not None:
             data = json.dumps(body).encode("utf-8")
 
         req = urllib.request.Request(url, data=data, method=method.upper())
@@ -669,6 +673,37 @@ def pr_create(client, args):
     emit(summary)
 
 
+def pr_update(client, args):
+    body = {}
+    if args.title:
+        body["title"] = args.title
+    if args.description is not None:
+        body["description"] = read_value(args.description)
+    if args.publish:
+        body["isDraft"] = False
+    if not body:
+        raise AdoError("Nothing to update: pass --title, --description and/or --publish.")
+    data = client.request("PATCH", _repo_path(args.repo, f"/pullRequests/{args.id}"),
+                          body=body)
+    emit(_pr_summary(data))
+
+
+def pr_attach(client, args):
+    name = args.name or os.path.basename(args.file)
+    with open(args.file, "rb") as handle:
+        content = handle.read()
+    data = client.request(
+        "POST",
+        _repo_path(args.repo, f"/pullRequests/{args.id}/attachments/"
+                              f"{urllib.parse.quote(name, safe='')}"),
+        body=content, content_type="application/octet-stream",
+        api_version=ATTACHMENTS_API_VERSION,
+    )
+    if not isinstance(data, dict):
+        raise AdoError(f"Unexpected response from the attachments API: {str(data)[:200]}")
+    emit({"name": name, "url": data.get("url")})
+
+
 # --------------------------------------------------------------------------
 # builds
 # --------------------------------------------------------------------------
@@ -937,6 +972,22 @@ def build_parser():
     p.add_argument("--reviewer", action="append", help="Reviewer identity id. Repeatable.")
     p.add_argument("--work-item", action="append", type=int, help="Work item id to link.")
     p.set_defaults(func=pr_create)
+
+    p = pr.add_parser("update", help="Update the title or description of a pull request.")
+    p.add_argument("id", type=int)
+    p.add_argument("--repo", required=True)
+    p.add_argument("--title")
+    p.add_argument("--description", help="Body text, or @path to a file.")
+    p.add_argument("--publish", action="store_true",
+                   help="Publish a draft. Notifies reviewers, so it needs prior approval.")
+    p.set_defaults(func=pr_update)
+
+    p = pr.add_parser("attach", help="Upload a file (e.g. a screenshot) to a pull request.")
+    p.add_argument("id", type=int)
+    p.add_argument("--repo", required=True)
+    p.add_argument("--file", required=True, help="Local file to upload.")
+    p.add_argument("--name", help="Attachment file name (default: the file's base name).")
+    p.set_defaults(func=pr_attach)
 
     # ---- builds ----
     build = groups.add_parser("build", help="Build pipelines").add_subparsers(

@@ -144,6 +144,8 @@ pr threads <id> --repo <repo> [--unresolved-only]
 pr workitems <id> --repo <repo>           # 紐づく作業アイテムをフィールドごと取得
 pr comment <id> --repo <repo> --text "…" [--file path --line N] [--thread N]
 pr create --repo <repo> --source <branch> --target <branch> --title "…" [--publish]
+pr update <id> --repo <repo> [--title "…"] [--description @body.md] [--publish]
+pr attach <id> --repo <repo> --file shot.png [--name M1.png]   # 添付し、本文に貼る URL を返す
 ```
 
 `pr create` は既定で**ドラフト**として作る。公開はレビュアーへの通知を伴い、ここからは
@@ -339,6 +341,32 @@ pr create --repo <repo> --source <ソース> --target <ターゲット> \
 受け入れ基準を読むので、省かない。`--publish` を付けるのは本文の承認を得たときだけ
 (「プルリクエスト」の節)。PR テンプレートは `.azuredevops/pull_request_template.md`、
 無ければ `.github/pull_request_template.md`。
+
+### PR にスクリーンショットを載せる
+
+画像はプルリクエストの添付にし、返った URL を本文に貼る。添付はプルリクエストに属するので、
+PR を作った後に行う。画像の無い本文でレビュアーに通知が飛ばないよう、次の順にする。
+
+1. `pr create` を `--publish` を付けずに実行し、下書きとして作る
+2. 画像ごとに `pr attach` で添付する
+3. `pr update` で本文を置き換える。本文の承認を得ていれば (「PR を作る」で `--publish` を
+   付ける条件)、同じ呼び出しに `--publish` を付けて公開する
+
+```
+pr attach <id> --repo <repo> --file <画像> --name <ソースブランチの / を - にしたもの>-<名前>.png
+pr update <id> --repo <repo> --description @body.md [--publish]
+```
+
+`pr attach` が返す `url` を `![<見出し>](<url>)` で本文の該当欄に貼り、`pr update` で本文を
+置き換える。本文は `pr create` に渡したファイル (無ければ「PR を読む」の `description`) を
+直して使う。添付名はプルリクエストの中で一意にし、撮り直した画像には `-2` などを付ける
+(同じ名前の扱いはサーバの版で違いうる)。画像はプルリクエストを読める人にだけ見える。
+添付が失敗したら、`pr update` で欄を `載せられなかった: 試したコマンドと出たエラー` に置き換える。
+
+本文 (`description`) は 4000 文字までで、超えると `pr update` が失敗する。添付の URL は
+1 枚で 150 文字ほどある。超えるなら、画像は見出しの行と一緒に「PR にコメントする」で
+トップレベルのスレッドに載せ、本文の該当欄には見出しの一覧と `画像は PR のコメントに載せた` の
+1 行を置く。
 
 ### PR を読む
 
