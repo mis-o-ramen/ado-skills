@@ -50,6 +50,9 @@ scripts/
 ├── install.sh                # スキルをホームディレクトリに配置する（macOS / Linux）
 └── install.ps1               # 同（Windows）
 
+templates/
+└── pull_request_template.md  # 各コードリポジトリに置く PR テンプレート
+
 VERSION                       # 書き出した版
 ```
 
@@ -171,7 +174,28 @@ python3 ~/.claude/skills/azure-devops/scripts/ado.py wit describe-type --type "U
 1 つ目で型の一覧が返れば、URL・PAT・TLS 信頼が通っている。2 つ目でそのサーバの実際の
 フィールド定義が `references/fields/` に生成される。扱う型ぶんを実行しておく。
 
-### 5. 実行時ゲートを設定する（推奨、Claude Code のみ）
+### 5. PR テンプレートを置く
+
+`issue-implement` は、作業しているコードリポジトリの PR テンプレートの見出しで PR 本文を書く。
+人間が開く PR と AI が作る PR の見出しをそろえるため、各コードリポジトリに
+`templates/pull_request_template.md` を `.azuredevops/pull_request_template.md` として置く。
+
+```sh
+mkdir -p .azuredevops
+cp ~/src/ado-skills/templates/pull_request_template.md .azuredevops/pull_request_template.md
+```
+
+既にテンプレートがあるリポジトリでは上書きせず、配布物のテンプレートの見出しを見比べて
+足りないものを足す。工程スキルが読むのは `.azuredevops/pull_request_template.md` (無ければ
+`.github/pull_request_template.md`) だけなので、`.vsts/`・`docs/`・ルートにあるテンプレートは
+`.azuredevops/` へ移す。工程スキルが AI の PR に足すのは一部の欄 (レビュ要点・受け入れ条件と
+検証など) だけで、それ以外の欄 (設計判断など) はテンプレートに無ければ AI の PR にも現れない。
+配布物が更新されたら、見出しが変わっていないかを見比べる。
+
+本文の上限は 4000 文字で、テンプレートの HTML コメント (`<!-- -->`) もそれに数えられる。
+記入したらコメントは消す。
+
+### 6. 実行時ゲートを設定する（推奨、Claude Code のみ）
 
 スキルの規約は散文なので、遵守は確率的になる。取り返しの利かない操作は、実行時に
 人間の確認を挟む permission 設定を重ねて決定論的に止める。`~/.claude/settings.json`
@@ -222,7 +246,7 @@ GitHub Copilot にはコマンド単位の確認機構が無いため、Copilot 
 `pr update --publish`）はレビュアーへの通知を伴って取り消せないが、ツールでは止まらず、本文の
 承認を得たときだけ付けるというスキルの規約だけが守る。
 
-### 6. 画面の観点を足す（任意）
+### 7. 画面の観点を足す（任意）
 
 `issue-design` と `pr-review` は、画面を作る・変える変更のときに、外部のスキル
 [Impeccable](https://github.com/pbakaus/impeccable)（Apache-2.0）の観点を使う。
